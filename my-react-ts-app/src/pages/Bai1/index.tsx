@@ -1,91 +1,81 @@
-// src/pages/Bai6.tsx
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 
-interface CountrySummary {
-  name: {common: string};
-  flags: {png: string; svg?: string};
+interface Country {
+  name: { common: string };
+  flags: { png: string };
   population: number;
   region: string;
   cca3: string;
 }
 
-export default function Bai6() {
-  const [countries, setCountries] = useState<CountrySummary[]>([]);
+export default function Bai1() {
+  const [countries, setCountries] = useState<Country[]>([]);
   const [search, setSearch] = useState("");
-  const [error, setError] = useState("");
+  const [filtered, setFiltered] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    setLoading(true);
     axios
-      .get<CountrySummary[]>(
+      .get<Country[]>(
         "https://restcountries.com/v3.1/all?fields=name,flags,population,region,cca3"
       )
       .then((res) => {
-        setCountries(res.data || []);
-        setError("");
+        setCountries(res.data);
+        setFiltered(res.data);
       })
-      .catch((err) => {
-        console.error(err);
-        setError("Không thể tải dữ liệu quốc gia.");
-      })
+      .catch(() => setError("Không thể tải dữ liệu quốc gia."))
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = countries.filter((c) =>
-    c.name.common.toLowerCase().includes(search.toLowerCase())
-  );
+  const handleSearch = () => {
+    const result = countries.filter((c) =>
+      c.name.common.toLowerCase().includes(search.toLowerCase())
+    );
+    setFiltered(result);
+  };
+
+  if (loading) return <p>Đang tải danh sách quốc gia...</p>;
+  if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
-    <div style={{padding: 20}}>
-      <div style={{marginBottom: 12}}>
+    <div style={{ padding: 20 }}>
+      <h2>Tra cứu Quốc gia</h2>
+      <div style={{ marginBottom: 12 }}>
         <input
           type="text"
-          placeholder="Tìm quốc gia..."
+          placeholder="Nhập tên quốc gia..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{marginRight: 8, padding: 6}}
+          style={{ marginRight: 8 }}
         />
+        <button onClick={handleSearch}>Tìm kiếm</button>
       </div>
 
-      {loading && <p>Đang tải danh sách quốc gia...</p>}
-      {error && <p style={{color: "red"}}>{error}</p>}
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, 200px)",
-          gap: 16,
-        }}
-      >
+      <div>
         {filtered.map((c) => (
           <div
             key={c.cca3}
             style={{
               border: "1px solid #ccc",
-              padding: 10,
-              borderRadius: 8,
-              textAlign: "center",
+              marginBottom: 10,
+              padding: 8,
+              borderRadius: 6,
             }}
           >
             <img
               src={c.flags.png}
               alt={c.name.common}
-              width={100}
-              style={{borderRadius: 6}}
+              width={50}
+              style={{ marginRight: 10, verticalAlign: "middle" }}
             />
-            <h4 style={{margin: "8px 0 4px"}}>{c.name.common}</h4>
-            <div className="small">Region: {c.region}</div>
-            <div className="small">
-              Population: {c.population.toLocaleString()}
-            </div>
-            <div style={{marginTop: 8}}>
-              <Link to={`/bai1/${encodeURIComponent(c.cca3)}`}>
-                Xem chi tiết
-              </Link>
-            </div>
+            <span>
+              {c.name.common} — {c.region} — Dân số:{" "}
+              {c.population.toLocaleString()}
+            </span>{" "}
+            <Link to={`/bai1/${c.cca3}`}>Xem chi tiết</Link>
           </div>
         ))}
       </div>
