@@ -1,11 +1,11 @@
-import {Route, BrowserRouter as Router, Routes} from "react-router-dom";
-import "./App.css";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Bai1 from "./pages/Bai1";
 import Bai2 from "./pages/Bai2";
 import Bai3 from "./pages/Bai3";
 import CountryDetail from "./pages/Bai1/CountryDetail";
 import MovieDetail from "./pages/Bai3/MovieDetail";
+import "./App.css";
 
 export default function App() {
   return (

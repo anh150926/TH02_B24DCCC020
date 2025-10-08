@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 interface RatesResponse {
@@ -15,116 +15,73 @@ export default function Bai2() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchRates = async (baseCurrency: string) => {
-    setLoading(true);
-    setError("");
-    try {
-      // Dùng API miễn phí, không cần key
-      const res = await axios.get<RatesResponse>(
-        `https://open.er-api.com/v6/latest/${baseCurrency}`
-      );
-      setRates(res.data.rates);
-    } catch (err) {
-      console.error(err);
-      setError("Không thể tải tỷ giá. Vui lòng thử lại sau.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchRates(base);
+    setLoading(true);
+    axios
+      .get<RatesResponse>(`https://open.er-api.com/v6/latest/${base}`)
+      .then((res) => setRates(res.data.rates))
+      .catch(() => setError("Không thể tải tỷ giá."))
+      .finally(() => setLoading(false));
   }, [base]);
 
   const handleConvert = () => {
     if (!rates[target]) {
-      setError("Không tìm thấy tỷ giá cho đơn vị đích.");
+      setError("Không có tỷ giá cho đơn vị này.");
       return;
     }
     setResult(amount * rates[target]);
   };
 
-  const currencyOptions = [
-    "USD",
-    "EUR",
-    "VND",
-    "JPY",
-    "GBP",
-    "AUD",
-    "CNY",
-    "KRW",
-  ];
+  if (loading) return <p>Đang tải dữ liệu...</p>;
+  if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
-    <div style={{padding: 20}}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          marginBottom: 20,
-        }}
-      >
-        <label>Đơn vị gốc:</label>
+    <div style={{ padding: 20 }}>
+      <h2>Quy đổi Tỷ giá tiền tệ</h2>
+
+      <div style={{ marginBottom: 10 }}>
+        <label>Tiền gốc: </label>
         <select value={base} onChange={(e) => setBase(e.target.value)}>
-          {currencyOptions.map((cur) => (
-            <option key={cur}>{cur}</option>
-          ))}
+          <option>USD</option>
+          <option>EUR</option>
+          <option>VND</option>
+          <option>JPY</option>
+          <option>GBP</option>
+          <option>AUD</option>
         </select>
 
-        <label>Đơn vị đích:</label>
+        <label style={{ marginLeft: 10 }}>→ Tiền đích: </label>
         <select value={target} onChange={(e) => setTarget(e.target.value)}>
-          {currencyOptions.map((cur) => (
-            <option key={cur}>{cur}</option>
-          ))}
+          <option>USD</option>
+          <option>EUR</option>
+          <option>VND</option>
+          <option>JPY</option>
+          <option>GBP</option>
+          <option>AUD</option>
         </select>
+      </div>
 
-        <label>Số tiền:</label>
+      <div style={{ marginBottom: 10 }}>
+        <label>Số tiền: </label>
         <input
           type="number"
           value={amount}
           onChange={(e) => setAmount(Number(e.target.value))}
-          style={{width: 100}}
         />
-
-        <button onClick={handleConvert} disabled={loading}>
+        <button onClick={handleConvert} style={{ marginLeft: 10 }}>
           Quy đổi
         </button>
       </div>
 
-      {loading && <p>⏳ Đang tải dữ liệu...</p>}
-      {error && <p style={{color: "red"}}>{error}</p>}
-
-      {result !== null && !loading && !error && (
-        <p style={{fontSize: 18}}>
+      {result !== null && (
+        <p>
           {amount} {base} ={" "}
-          <strong>
-            {result.toFixed(2)} {target}
-          </strong>
+          <b>
+            {result.toLocaleString(undefined, { maximumFractionDigits: 2 })}{" "}
+            {target}
+          </b>
         </p>
       )}
-
-      {/* {!loading && !error && (
-        <details style={{marginTop: 20}}>
-          <summary>Xem toàn bộ tỷ giá {base}</summary>
-          <table border={1} cellPadding={6} style={{marginTop: 10}}>
-            <thead>
-              <tr>
-                <th>Đơn vị</th>
-                <th>Tỷ giá</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(rates).map(([code, rate]) => (
-                <tr key={code}>
-                  <td>{code}</td>
-                  <td>{rate.toFixed(4)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </details>
-      )} */}
     </div>
   );
 }
